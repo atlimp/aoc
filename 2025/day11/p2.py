@@ -31,44 +31,55 @@ class Day11:
                 return device
 
 
-    def traverse(self, prev, curr, path):
-        key = f'{prev.token}-{curr.token}'
+    def traverse(self, curr, end):
+        key = f'{curr}-{end}'
 
         if key in cache:
-            print(key)
             return cache[key]
         
         if curr is None:
             return 0
         
-        if curr.token == 'out':
-            print(path)
-            if 'fft' in path and 'dac' in path:
-                print(path)
-                return 1
-            return 0
+        if curr.token == end:
+            return 1
         
         ways = 0
         for c in curr.connections:
-            if c in path: # looping
-                continue
-
-
             next_device = self.find_device(c)
-            if curr.token == 'svr':
-                print(path, next_device.token)
-            new_path = path.copy()
-            new_path.append(c)
-            ways += self.traverse(curr, next_device, new_path)
+            ways += self.traverse(next_device, end)
 
         cache[key] = ways
         
         return ways
 
     def solve(self):
-        you = self.find_device('svr')
-        sum = self.traverse(Device('', []), you, ['svr'])
-        return sum;    
+        svr = self.find_device('svr')
+        fft = self.find_device('fft')
+        dac = self.find_device('dac')
+
+        svr_dac = self.traverse(svr, 'dac')
+        svr_fft = self.traverse(svr, 'fft')
+        dac_fft = self.traverse(dac, 'fft')
+        fft_dac = self.traverse(fft, 'dac')
+        dac_out = self.traverse(dac, 'out')
+        fft_out = self.traverse(fft, 'out')
+
+        print('svr_dac', svr_dac)
+        print('svr_fft', svr_fft)
+        print('dac_fft', dac_fft)
+        print('fft_dac', fft_dac)
+        print('dac_out', dac_out)
+        print('fft_out', fft_out)
+
+        via_dac_fft = svr_dac
+        via_dac_fft *= dac_fft
+        via_dac_fft *= fft_out
+
+        via_fft_dac = svr_fft
+        via_fft_dac *= fft_dac
+        via_fft_dac *= dac_out
+
+        return via_dac_fft + via_fft_dac;    
 
 if __name__ == '__main__':
     file = open('input', 'r')
